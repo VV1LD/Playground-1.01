@@ -38,17 +38,17 @@ function sendBuffer(hostAddr, hostPort, address, length) {
 	writeString(socket_name_loc, socket_name);
 	writeString(struct_addr_loc, struct_addr);
 	
-	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	chain.call("socket", SCENET, 0x2D60, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("connect", SCENET, 0x3030, undefined, struct_addr_loc, SIZEOF_SIN);
+	chain.call("connect", SCENET, 0x2da0, undefined, struct_addr_loc, SIZEOF_SIN);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("send", SCENET, 0x3060, undefined, address, length, 0);
+	chain.call("send", SCENET, 0x2DD0, undefined, address, length, 0);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("close", SCENET, 0x3100, undefined);
+	chain.call("close", SCENET, 0x2E70, undefined);
 }
 
 function sendMessage(hostAddr, hostPort, message, length) {
@@ -64,18 +64,24 @@ function sendMessage(hostAddr, hostPort, message, length) {
 	writeString(struct_addr_loc, struct_addr);
 	writeString(message_loc, message);
 	
-	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	chain.call("socket", SCENET, 0x2d60, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
 	chain.write_rax_ToVariable(0);
+	logAdd("ran socket");
+	chain.read_rdi_FromVariable(0);
+		logAdd("ran rdi");
+
+	chain.call("connect", SCENET, 0x2dd0, undefined, struct_addr_loc, SIZEOF_SIN);
+	logAdd("ran connect");
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("connect", SCENET, 0x3030, undefined, struct_addr_loc, SIZEOF_SIN);
+	chain.call("send", SCENET, 0x2dd0, undefined, message_loc, length, 0);
+	logAdd("ran send");
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("send", SCENET, 0x3060, undefined, message_loc, length, 0);
-	
-	chain.read_rdi_FromVariable(0);
-	chain.call("close", SCENET, 0x3100, undefined);
-}
+	chain.call("close", SCENET, 0x2E70, undefined);
+	logAdd("ran close");
+
+	}
 
 /*function receiveBuffer(hostPort, buffer, length) {
 	var socket_name = "test";
@@ -104,23 +110,23 @@ function receiveBufferS1(hostPort, buffer, length) {
 	writeString(socket_name_loc, socket_name);
 	writeString(struct_addr_loc, struct_addr);
 	
-	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	chain.call("socket", SCENET, 0x2d60, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("bind", SCENET, 0x3000, undefined, struct_addr_loc, SIZEOF_SIN);
+	chain.call("bind", SCENET, 0x2D70, undefined, struct_addr_loc, SIZEOF_SIN);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("listen", SCENET, 0x3010, undefined, 10);
+	chain.call("listen", SCENET, 0x2D80, undefined, 10);
 	
 	chain.read_rdi_FromVariable(0);
-	chain.call("accept", SCENET, 0x3020, undefined, 0, 0);
+	chain.call("accept", SCENET, 0x2d90, undefined, 0, 0);
 }
 
 function receiveBufferS2(hostPort, buffer, length) {
-	chain.call("socket", SCENET, 0x2ff0, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
-	chain.call("bind", SCENET, 0x3000, 0x54, struct_addr_loc, SIZEOF_SIN);
-	chain.call("listen", SCENET, 0x3010, 0x54, 10);
-	chain.call("accept", SCENET, 0x3020, 0x54, 0, 0);
-	chain.call("recv", SCENET, 0x3090, 0x55, buffer, length, 0);
+	chain.call("socket", SCENET, 0x2d60, socket_name_loc, SCE_NET_AF_INET, SCE_NET_SOCK_STREAM, 0);
+	chain.call("bind", SCENET, 0x2d70, 0x54, struct_addr_loc, SIZEOF_SIN);
+	chain.call("listen", SCENET, 0x2d80, 0x54, 10);
+	chain.call("accept", SCENET, 0x2d90, 0x54, 0, 0);
+	chain.call("recv", SCENET, 0x2e00, 0x55, buffer, length, 0);
 }
