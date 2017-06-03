@@ -55,11 +55,11 @@ function read(path, type) {
 	
 	// file or other
 	else {
-		chain.syscall("mmap", 477, 0, 4096, 1 | 2, 4096, -1, 0);
-		chain.write_rax_ToVariable(1);
+		//chain.syscall("mmap", 477, 0, 4096, 1 | 2, 4096, -1, 0);
+		//chain.write_rax_ToVariable(1);
 		
-		chain.add("pop rcx", "ret");
-		chain.add("mov rsi, rax; jmp rcx");
+		//chain.add("pop rcx", "ret");
+		//chain.add("mov rsi, rax; jmp rcx");
 		
 		chain.read_rdi_FromVariable(0);
 		
@@ -75,6 +75,7 @@ function read(path, type) {
 			output += "Does not exist or is not readable";
 		}
 		else {
+			logAdd("else entered");
 			// directory
 			if(type == 4) {
 				var entry = contents;

