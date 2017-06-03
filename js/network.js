@@ -68,9 +68,9 @@ function sendMessage(hostAddr, hostPort, message, length) {
 	chain.write_rax_ToVariable(0);
 	logAdd("ran socket");
 	chain.read_rdi_FromVariable(0);
-		logAdd("ran rdi");
+	logAdd("ran rdi");
 
-	chain.call("connect", SCENET, 0x2dd0, undefined, struct_addr_loc, SIZEOF_SIN);
+	chain.call("connect", SCENET, 0x2da0, undefined, struct_addr_loc, SIZEOF_SIN);
 	logAdd("ran connect");
 	
 	chain.read_rdi_FromVariable(0);

